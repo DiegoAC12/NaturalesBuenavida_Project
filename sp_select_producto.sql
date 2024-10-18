@@ -1,5 +1,4 @@
-DELIMITER //
-CREATE PROCEDURE spSelectProductos()
+CREATE DEFINER=`root`@`localhost` PROCEDURE `spSelectProductos`()
 BEGIN
     SELECT 
         prod_id,                                     
@@ -11,15 +10,11 @@ BEGIN
         prod_fecha_vencimiento AS FechaVencimiento,  
         prod_precio_venta AS PrecioVenta,            
         prod_precio_compra AS PrecioCompra,          
-        prod_medida AS Medida,                       
-        tbl_categoria_cat_id,                        
-        cat.cat_descripcion AS Categoria,  
-        tbl_proveedor_prov_id,                      
-        prov.tbl_persona_pers_id AS Proveedor,
+        prod_medida AS Medida,                                              
+        cat.cat_descripcion AS Categoria,                    
         pers.pers_nombre_razonsocial AS NombreProveedor,
-        tbl_unidad_medida_und_id,
+        pers.pers_apellido AS ApellidoProveedor,
         und.und_descripcion AS UnidadMedida,
-        tbl_presentacion_pres_id,
         present.pres_descripcion AS Presentacion
     FROM tbl_producto AS prod
     INNER JOIN tbl_categoria AS cat
@@ -32,5 +27,4 @@ BEGIN
 		ON prod.tbl_unidad_medida_und_id = und.und_id
 	INNER JOIN tbl_presentacion AS present
 		ON prod.tbl_presentacion_pres_id = present.pres_id;
-END //
-DELIMITER ;
+END
