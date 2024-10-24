@@ -1,6 +1,5 @@
 DELIMITER //
-
-CREATE PROCEDURE sp_insertar_pais (
+CREATE PROCEDURE spCreatePais (
     IN p_codigo VARCHAR(45),
     IN p_nombre VARCHAR(45)
 )
@@ -10,19 +9,20 @@ BEGIN
 END //
 
 DELIMITER ;
-DELIMITER //
 
-CREATE PROCEDURE sp_mostrar_pais (
-    IN p_id INT
-)
+DELIMITER //
+CREATE PROCEDURE spSelectPais ()
 BEGIN
-    SELECT * FROM tbl_pais WHERE pais_id = p_id;
+    SELECT 
+	pais_id as id,
+	pais_codigo as codigo,
+	pais_nombre as pais
+	FROM tbl_pais WHERE pais_id = p_id;
 END //
-
 DELIMITER ;
-DELIMITER //
 
-CREATE PROCEDURE sp_actualizar_pais (
+DELIMITER //
+CREATE PROCEDURE spUpdatepais (
     IN p_id INT,
     IN p_codigo VARCHAR(45),
     IN p_nombre VARCHAR(45)
@@ -33,15 +33,13 @@ BEGIN
         pais_nombre = p_nombre
     WHERE pais_id = p_id;
 END //
-
 DELIMITER ;
-DELIMITER //
 
-CREATE PROCEDURE sp_eliminar_pais (
+DELIMITER //
+CREATE PROCEDURE spDeletepais (
     IN p_id INT
 )
 BEGIN
     DELETE FROM tbl_pais WHERE pais_id = p_id;
 END //
-
 DELIMITER ;
