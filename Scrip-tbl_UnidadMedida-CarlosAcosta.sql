@@ -12,10 +12,10 @@ DELIMITER ;
 
 DELIMITER //
 
-CREATE PROCEDURE sp_mostrar_unidad_medida ()
+CREATE PROCEDURE sp_mostrar_unidad_medida()
 BEGIN
-    SELECT * FROM tbl_unidad_medida;
-END //
+    SELECT und_descripcion FROM tbl_unidad_medida;
+END//
 
 DELIMITER ;
 DELIMITER //
