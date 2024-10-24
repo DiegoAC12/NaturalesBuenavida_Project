@@ -13,7 +13,7 @@ DELIMITER //
 
 CREATE PROCEDURE sp_mostrar_presentacion ()
 BEGIN
-    SELECT * FROM tbl_presentacion;
+    SELECT pres_descripcion FROM tbl_presentacion;
 END //
 
 DELIMITER ;
