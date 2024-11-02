@@ -3,29 +3,57 @@
 ######################
 
 DELIMITER //
+
 CREATE PROCEDURE spInsertarCompraYDetalle(
     IN p_fecha_compra DATE,
-    IN p_total DECIMAL,
-    IN p_fkprov_id INT,
     IN p_fkproducto_id INT,
     IN p_cantidad INT,
-    IN p_precio_unitario DECIMAL,
+    IN p_precio_unitario DECIMAL(10,2),
     IN p_numero_factura VARCHAR(50)
 )
 BEGIN
     DECLARE p_compra_id INT;
+    DECLARE p_total DECIMAL(10,2);
+
+    -- Calcular el total multiplicando la cantidad por el precio unitario
+    SET p_total = p_cantidad * p_precio_unitario;
+
+    -- Iniciar la transacción
+    START TRANSACTION;
 
     -- Insertar en tbl_compra
-    INSERT INTO tbl_compra (comp_fecha_compra, comp_total, tbl_proveedor_prov_id)
-    VALUES (p_fecha_compra, p_total, p_prov_id);
+    INSERT INTO tbl_compra (comp_fecha_compra, comp_total)
+    VALUES (p_fecha_compra, p_total);
 
     -- Obtener el último ID insertado en tbl_compra
     SET p_compra_id = LAST_INSERT_ID();
 
     -- Insertar en tbl_detalle_compraproducto
-    INSERT INTO tbl_detalle_compraproducto (tbl_compra_compra_id, tbl_producto_producto_id, det_cantidad, det_precio_unitario, detc_numero_factura)
-    VALUES (p_compra_id, p_producto_id, p_cantidad, p_precio_unitario, p_numero_factura);
+    INSERT INTO tbl_detalle_compraproducto (
+        tbl_compra_comp_id, 
+        tbl_producto_prod_id, 
+        detc_cantidad_comprada, 
+        detc_precio_unitario, 
+        detc_numero_factura
+    )
+    VALUES (
+        p_compra_id, 
+        p_fkproducto_id, 
+        p_cantidad, 
+        p_precio_unitario, 
+        p_numero_factura
+    );
+
+    -- Actualizar el stock del producto en tbl_producto
+    UPDATE tbl_producto
+    SET prod_cantidad_inventario = prod_cantidad_inventario + p_cantidad
+    WHERE prod_id = p_fkproducto_id;
+
+    -- Confirmar la transacción
+    COMMIT;
+
 END //
+
 DELIMITER ;
 
 ######################
@@ -55,47 +83,99 @@ DELIMITER ;
 ######################
 
 DELIMITER //
-CREATE PROCEDURE spUpdateCompra(
+
+CREATE PROCEDURE spUpdateCompraYDetalle(
     IN p_compra_id INT,
     IN p_fecha_compra DATE,
-    IN p_total DECIMAL,
-    IN p_numero_factura VARCHAR(50),
     IN p_fkproducto_id INT,
     IN p_cantidad INT,
-    IN p_precio_unitario DECIMAL
+    IN p_precio_unitario DECIMAL(10,2),
+    IN p_numero_factura VARCHAR(50)
 )
 BEGIN
-    -- Actualizar la compra en tbl_compra
-    UPDATE tbl_compra
-    SET comp_fecha_compra = p_fecha_compra,
-        comp_total = p_total
-    WHERE comp_id = p_compra_id;
+    DECLARE p_total DECIMAL(10,2);
+    DECLARE p_cantidad_anterior INT;
 
-    -- Actualizar el detalle de la compra en tbl_detalle_compraproducto
+    -- Calcular el total multiplicando la cantidad por el precio unitario
+    SET p_total = p_cantidad * p_precio_unitario;
+
+    -- Iniciar la transacción
+    START TRANSACTION;
+
+    -- Obtener la cantidad anterior del detalle de compra para ajustar el stock correctamente
+    SELECT detc_cantidad_comprada INTO p_cantidad_anterior
+    FROM tbl_detalle_compraproducto
+    WHERE tbl_compra_comp_id = p_compra_id
+      AND tbl_producto_prod_id = p_fkproducto_id;
+
+    -- Actualizar la tabla tbl_compra
+    UPDATE tbl_compra
+    SET comp_fecha_compra = p_fecha_compra, 
+        comp_total = p_total
+    WHERE compra_id = p_compra_id;
+
+    -- Actualizar la tabla tbl_detalle_compraproducto
     UPDATE tbl_detalle_compraproducto
-    SET detc_numero_factura = p_numero_factura,
-        tbl_producto_prod_id = p_fkproducto_id,
-        detc_cantidad_comprada = p_cantidad,
-        detc_precio_unitario = p_precio_unitario
-    WHERE tbl_compra_comp_id = p_compra_id;
+    SET detc_cantidad_comprada = p_cantidad, 
+        detc_precio_unitario = p_precio_unitario,
+        detc_numero_factura = p_numero_factura
+    WHERE tbl_compra_comp_id = p_compra_id
+      AND tbl_producto_prod_id = p_fkproducto_id;
+
+    -- Actualizar el stock del producto en tbl_producto:
+    -- Restar la cantidad anterior y agregar la nueva cantidad
+    UPDATE tbl_producto
+    SET prod_cantidad_inventario = prod_cantidad_inventario - p_cantidad_anterior + p_cantidad
+    WHERE prod_id = p_fkproducto_id;
+
+    -- Confirmar la transacción
+    COMMIT;
+
 END //
+
 DELIMITER ;
+
 
 ######################
 ## Delete Compra #####
 ######################
 
 DELIMITER //
-CREATE PROCEDURE spDeleteCompra(
-    IN p_compra_id INT
+
+CREATE PROCEDURE spDeleteCompraYDetalle(
+    IN p_compra_id INT,
+    IN p_fkproducto_id INT
 )
 BEGIN
-    -- Eliminar detalles de la compra en tbl_detalle_compraproducto
+    DECLARE p_cantidad_eliminada INT;
+
+    -- Iniciar la transacción
+    START TRANSACTION;
+
+    -- Obtener la cantidad comprada del detalle de compra para ajustar el stock correctamente
+    SELECT detc_cantidad_comprada INTO p_cantidad_eliminada
+    FROM tbl_detalle_compraproducto
+    WHERE tbl_compra_comp_id = p_compra_id
+      AND tbl_producto_prod_id = p_fkproducto_id;
+
+    -- Eliminar el detalle de compra en tbl_detalle_compraproducto
     DELETE FROM tbl_detalle_compraproducto
-    WHERE tbl_compra_comp_id = p_compra_id;
+    WHERE tbl_compra_comp_id = p_compra_id
+      AND tbl_producto_prod_id = p_fkproducto_id;
 
     -- Eliminar la compra en tbl_compra
     DELETE FROM tbl_compra
-    WHERE comp_id = p_compra_id;
+    WHERE compra_id = p_compra_id;
+
+    -- Actualizar el stock del producto en tbl_producto
+    -- Restar la cantidad eliminada del inventario
+    UPDATE tbl_producto
+    SET prod_cantidad_inventario = prod_cantidad_inventario - p_cantidad_eliminada
+    WHERE prod_id = p_fkproducto_id;
+
+    -- Confirmar la transacción
+    COMMIT;
+
 END //
+
 DELIMITER ;
