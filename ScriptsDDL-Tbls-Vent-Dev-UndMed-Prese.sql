@@ -13,12 +13,13 @@ END //
 
 CREATE PROCEDURE spDDL_mostrar_unidad_medida()
 BEGIN
-    SELECT und_id,und_descripcion FROM tbl_unidad_medida;
-END$$
-CREATE  PROCEDURE spDDL_mostrar_presentacion()
+    SELECT und_id, und_descripcion FROM tbl_unidad_medida;
+END
+
+CREATE PROCEDURE spDDL_mostrar_presentacion()
 BEGIN
-    SELECT pres_id,pres_descripcion FROM tbl_presentacion;
-END$$
+    SELECT pres_id, pres_descripcion FROM tbl_presentacion;
+END
 
 DELIMITER //
 
