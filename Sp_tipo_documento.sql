@@ -21,7 +21,7 @@ DELIMITER ;
 DELIMITER //
 CREATE PROCEDURE spGetAllTypeDoc()
 BEGIN
-    SELECT * FROM tbl_tipo_documento;
+    SELECT doc_id, doc_tipo_documento FROM tbl_tipo_documento;
 END//
 DELIMITER ;
 
