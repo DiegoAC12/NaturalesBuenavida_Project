@@ -50,12 +50,15 @@ BEGIN
 		inv.inv_cantidad AS "Cantidad Nueva",
         inv.inv_fecha_realizacion AS FechaInventario,
         inv.inv_observacion AS Observacion,
+        pro.prod_id AS fkproducto,
         pro.prod_cod_producto AS CodigoProducto,
         pro.prod_nombre AS Producto,
         pro.prod_descripcion AS Descripcion,
         pro.prod_cantidad_inventario AS "Cantidad actual inventario",
         pro.prod_medida AS Medida,
+        und.und_id AS fkunidadmedida,
         und.und_descripcion AS UnidadMedida,
+        per.pers_id AS fkpersona,
         CONCAT(per.pers_identificacion," - ",per.pers_nombre_razonsocial, " ", per.pers_apellido) AS NombreEmpleado
     FROM tbl_inventario as inv
 	INNER JOIN tbl_producto AS pro ON inv.tbl_producto_prod_id = pro.prod_id
