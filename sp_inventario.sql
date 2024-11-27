@@ -75,7 +75,8 @@ CREATE PROCEDURE spUpdateInventario(
     IN p_prod_id INT,
     IN p_nueva_cantidad INT,
     IN p_inv_fecha DATE,
-    IN p_inv_observacion TEXT
+    IN p_inv_observacion TEXT,
+    IN p_emp_id INT
 )
 BEGIN
     -- Verificar si el registro en tbl_inventario existe
@@ -89,7 +90,9 @@ BEGIN
         UPDATE tbl_inventario
         SET inv_cantidad = p_nueva_cantidad,
             inv_fecha_realizacion = p_inv_fecha,
-            inv_observacion = p_inv_observacion
+            inv_observacion = p_inv_observacion,
+            tbl_producto_prod_id = p_prod_id,
+            tbl_empleado_emp_id = p_emp_id
         WHERE inv_id = p_inv_id;
     ELSE
         -- Si no existe el registro de inventario, lanzar un error
